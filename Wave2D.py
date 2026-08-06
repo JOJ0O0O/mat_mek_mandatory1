@@ -1,32 +1,67 @@
 import numpy as np
 import sympy as sp
-import scipy.sparse as sparse
-import matplotlib.pyplot as plt
-from matplotlib import cm
+from scipy import sparse
 
-x, y, t = sp.symbols('x,y,t')
+x, y, t = sp.symbols("x,y,t")
+
 
 class Wave2D:
+    """Class for solving the 2D wave equation"""
 
-    def create_mesh(self, N, sparse=False):
-        """Create 2D mesh and store in self.xij and self.yij"""
-        # self.xji, self.yij = ...
-        raise NotImplementedError
 
-    def D2(self, N):
-        """Return second order differentiation matrix"""
-        raise NotImplementedError
+    def create_mesh(
+        self, N: int, sparse: bool = False
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Return 2D mesh created using np.meshgrid
+
+        Parameters
+        ----------
+        N : int
+            The number of uniform intervals in each direction
+        sparse : bool, optional
+            Whether to create a sparse mesh or not. Default is False.
+        Returns
+        -------
+        xij : 2D array
+            The x-coordinates of the mesh
+        yij : 2D array
+            The y-coordinates of the mesh"""
+        raise NotImplementedError("The create_mesh method is not implemented yet.")
+
+    def D2(self, N: int) -> sparse.lil_matrix:
+        """Return second order differentiation matrix
+
+        Parameters
+        ----------
+        N : int
+            The number of uniform intervals in each direction
+        Returns
+        -------
+        D : scipy sparse LIL matrix
+            The second order differentiation matrix
+        """
+        raise NotImplementedError("The D2 method is not implemented yet.")
 
     @property
     def w(self):
         """Return the dispersion coefficient"""
-        raise NotImplementedError
+        raise NotImplementedError("The w property is not implemented yet.")
 
-    def ue(self, mx, my):
-        """Return the exact standing wave"""
-        return sp.sin(mx*sp.pi*x)*sp.sin(my*sp.pi*y)*sp.cos(self.w*t)
+    def ue(self, mx: int, my: int) -> sp.Expr:
+        """Return the exact standing wave
 
-    def initialize(self, N, mx, my):
+        Parameters
+        ----------
+        mx, my : int
+            Parameters for the standing wave
+        Returns
+        -------
+        ue : Sympy expression
+            The exact solution as a Sympy expression in x, y and t
+        """
+        return sp.sin(mx * sp.pi * x) * sp.sin(my * sp.pi * y) * sp.cos(self.w * t)
+
+    def initialize(self, N: int, mx: int, my: int) -> np.ndarray:
         r"""Initialize the solution at $U^{n}$ and $U^{n-1}$
 
         Parameters
@@ -36,14 +71,14 @@ class Wave2D:
         mx, my : int
             Parameters for the standing wave
         """
-        raise NotImplementedError
+        raise NotImplementedError("The initialize method is not implemented yet.")
 
     @property
-    def dt(self):
+    def dt(self) -> float:
         """Return the time step"""
-        raise NotImplementedError
+        raise NotImplementedError("The dt property is not implemented yet.")
 
-    def l2_error(self, u, t0):
+    def l2_error(self, u: np.ndarray, t0: float) -> float:
         """Return l2-error norm
 
         Parameters
@@ -53,12 +88,28 @@ class Wave2D:
         t0 : number
             The time of the comparison
         """
-        raise NotImplementedError
+        raise NotImplementedError("The l2_error method is not implemented yet.")
 
-    def apply_bcs(self):
-        raise NotImplementedError
+    def apply_bcs(self, u: np.ndarray):
+        """Apply boundary conditions to the solution mesh function
 
-    def __call__(self, N, Nt, cfl=0.5, c=1.0, mx=3, my=3, store_data=-1):
+        Parameters
+        ----------
+        u : array
+            The solution mesh function
+        """
+        raise NotImplementedError("The apply_bcs method is not implemented yet.")
+
+    def __call__(
+        self,
+        N: int,
+        Nt: int,
+        cfl: float = 0.5,
+        c: float = 1.0,
+        mx: int = 3,
+        my: int = 3,
+        store_data: int = -1,
+    ):
         """Solve the wave equation
 
         Parameters
@@ -83,9 +134,11 @@ class Wave2D:
         If store_data > 0, then return a dictionary with key, value = timestep, solution
         If store_data == -1, then return the two-tuple (h, l2-error)
         """
-        raise NotImplementedError
+        raise NotImplementedError("The __call__ method is not implemented yet.")
 
-    def convergence_rates(self, m=4, cfl=0.1, Nt=10, mx=3, my=3):
+    def convergence_rates(
+        self, m: int = 4, cfl: float = 0.1, Nt: int = 10, mx: int = 3, my: int = 3
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Compute convergence rates for a range of discretizations
 
         Parameters
@@ -109,35 +162,42 @@ class Wave2D:
         E = []
         h = []
         N0 = 8
-        for m in range(m):
+        for _ in range(m):
             dx, err = self(N0, Nt, cfl=cfl, mx=mx, my=my, store_data=-1)
             E.append(err[-1])
             h.append(dx)
             N0 *= 2
             Nt *= 2
-        r = [np.log(E[i-1]/E[i])/np.log(h[i-1]/h[i]) for i in range(1, m+1, 1)]
-        return r, np.array(E), np.array(h)
+        r = [
+            np.log(E[i - 1] / E[i]) / np.log(h[i - 1] / h[i])
+            for i in range(1, m, 1)
+        ]
+        return np.array(r), np.array(E), np.array(h)
+
 
 class Wave2D_Neumann(Wave2D):
+    def D2(self, N: int) -> sparse.lil_matrix:
+        raise NotImplementedError("The D2 method is not implemented yet.")
 
-    def D2(self, N):
-        raise NotImplementedError
+    def ue(self, mx: int, my: int) -> sp.Expr:
+        raise NotImplementedError("The ue method is not implemented yet.")
 
-    def ue(self, mx, my):
-        raise NotImplementedError
+    def apply_bcs(self, u: np.ndarray):
+        raise NotImplementedError("The apply_bcs method is not implemented yet.")
 
-    def apply_bcs(self):
-        raise NotImplementedError
 
 def test_convergence_wave2d():
     sol = Wave2D()
-    r, E, h = sol.convergence_rates(mx=2, my=3)
-    assert abs(r[-1]-2) < 1e-2
+    r, _, _ = sol.convergence_rates(m=5, mx=2, my=3)
+    assert abs(r[-1] - 2) < 1e-2, r
+
 
 def test_convergence_wave2d_neumann():
     solN = Wave2D_Neumann()
-    r, E, h = solN.convergence_rates(mx=2, my=3)
-    assert abs(r[-1]-2) < 0.05
+    r, _, _ = solN.convergence_rates(mx=3, my=3)
+    assert abs(r[-1] - 2) < 0.05
+
 
 def test_exact_wave2d():
-    raise NotImplementedError
+    raise NotImplementedError("The test_exact_wave2d function is not implemented yet.")
+
