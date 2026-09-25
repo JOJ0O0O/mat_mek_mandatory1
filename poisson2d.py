@@ -53,7 +53,14 @@ class Poisson2D:
         A : scipy sparse LIL matrix
             The vectorized Laplace operator
         """
-        raise NotImplementedError("The laplace method is not implemented yet.")
+        D2 = sparse.diags([1, -2, 1], [-1, 0, 1], (N+1, N+1), 'lil')
+        D2[0, :4] = 2, -5, 4, -1
+        D2[-1, -4:] = -1, 4, -5, 2
+        xij, yij = self.create_mesh(N)
+        dx, dy = N / np.shape(xij)
+        D2x = (1./dx**2)*D2(N)
+        D2y = (1./dy**2)*D2(N)
+        return (sparse.kron(D2x, sparse.eye(N+1)) + sparse.kron(sparse.eye(N+1), D2y))
 
     def assemble(
         self, N: int, f: sp.Expr, ue: sp.Expr
@@ -101,9 +108,10 @@ class Poisson2D:
 
     def get_boundary_indices(self, N: int) -> np.ndarray:
         """Return indices of vectorized matrix that belongs to the boundary"""
-        raise NotImplementedError(
-            "The get_boundary_indices method is not implemented yet."
-        )
+        B = np.ones((N+1, N+1), dtype=bool)
+        B[1:-1, 1:-1] = 0
+        bnds = np.where(B.ravel() == 1)[0]
+        return bnds
 
     def l2_error(self, u: np.ndarray, ue: sp.Expr) -> float:
         """Return l2-error
