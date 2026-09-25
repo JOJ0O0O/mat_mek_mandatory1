@@ -185,6 +185,7 @@ class Wave2D_Neumann(Wave2D):
     def apply_bcs(self, u: np.ndarray):
         raise NotImplementedError("The apply_bcs method is not implemented yet.")
 
+print("Test run")
 
 def test_convergence_wave2d():
     sol = Wave2D()
