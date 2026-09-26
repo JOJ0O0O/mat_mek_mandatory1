@@ -139,9 +139,9 @@ class Poisson2D:
         N = u.shape[0] -1
         xij, yij = self.create_mesh(N)
         uemesh = self.meshfunction(ue,xij, yij)
-        diff = u - uemesh
+        diff = (u - uemesh)**2
         dx = self.p.L / (N + 1)
-        return np.sqrt(dx * dx * np.sum(diff**2))
+        return np.sqrt(dx * dx * np.sum(diff))
 
     def __call__(self, N: int, ue: sp.Expr) -> np.ndarray:
         """Solve Poisson's equation with a given manufactured solution
