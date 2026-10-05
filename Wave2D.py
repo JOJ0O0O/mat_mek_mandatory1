@@ -313,8 +313,53 @@ def test_exact_wave2d():
     assert abs(L2sol) < 1e-12, L2sol
     assert abs(L2solN) < 1e-12, L2solN
 
+def create_movie(
+    sol: Wave2D, N: int, Nt: int, cfl: float, mx: int, my: int, filename: str
+):
+    """Create a movie of the solution
+
+    Parameters
+    ----------
+    sol : Wave2D
+        The solver object
+    N : int
+        The number of uniform intervals in each direction
+    Nt : int
+        The number of time steps to take
+    cfl : number
+        The CFL number
+    mx, my : int
+        Parameters for the standing wave
+    filename : str
+        The name of the output file (without extension)
+    """
+    import matplotlib.pyplot as plt
+    from matplotlib.animation import FuncAnimation
+
+    data = sol(N=N, Nt=Nt, cfl=cfl, mx=mx, my=my, store_data=1)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    xij, yij = sol.create_mesh(N)
+    im = ax.imshow(data[0], extent=[0, 1, 0, 1], origin="lower", vmin=-1, vmax=1)
+
+    def update(frame):
+        im.set_array(data[frame])
+        return [im]
+
+    ani = FuncAnimation(fig, update, frames=range(0, Nt), blit=True)
+    ani.save(f"{filename}.mp4", writer="ffmpeg", fps=30)
+
 if __name__ == "__main__":
     test_convergence_wave2d()
     test_convergence_wave2d_neumann()
     test_exact_wave2d()
+    create_movie(
+        Wave2D(),
+        N=100,
+        Nt=100,
+        cfl=1 / np.sqrt(2),
+        mx=3,
+        my=3,
+        filename="wave2d",
+    )
     print("All tests passed!")
