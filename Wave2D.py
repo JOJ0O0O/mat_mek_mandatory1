@@ -176,13 +176,13 @@ class Wave2D:
         self.cfl = cfl
         self.mx = mx
         self.my = my
-        self.dx = 1 / N
+        self.dx = 1 / N 
         Unm1, Un = self.initialize(N, mx, my)
         Unp1 = np.empty_like(Un)
         D2 = self.D2(N)
         dict_ts = {}
 
-        for t in range(2, Nt):
+        for t in range(2, Nt+1):
             Unp1[:] = 2 * Un - Unm1 + cfl**2 * (D2 @ Un + Un @ D2.T)
             self.apply_bcs(Unp1)
             if store_data > 0 and t % store_data == 0:
@@ -193,7 +193,7 @@ class Wave2D:
             return dict_ts
 
         elif(store_data == -1):
-            l2_error = self.l2_error(Un, (Nt - 1) * self.dt)
+            l2_error = self.l2_error(Un, (Nt) * self.dt)
             return (self.dx, l2_error)
 
         else:
@@ -294,7 +294,7 @@ def test_convergence_wave2d():
     sol = Wave2D()
     r, _, _ = sol.convergence_rates(m=5, mx=2, my=3)
     print(r[-1]-2)
-    assert abs(r[-1] - 2) < 1e-1, r
+    assert abs(r[-1] - 2) < 1e-2, r
 
 
 def test_convergence_wave2d_neumann():
@@ -335,31 +335,33 @@ def create_movie(
     """
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation
-
-    data = sol(N=N, Nt=Nt, cfl=cfl, mx=mx, my=my, store_data=1)
+    store_data=1
+    data = sol(N=N, Nt=Nt, cfl=cfl, mx=mx, my=my, store_data=store_data)
     fig = plt.figure()
     ax = fig.add_subplot(111)
     xij, yij = sol.create_mesh(N)
-    im = ax.imshow(data[0], extent=[0, 1, 0, 1], origin="lower", vmin=-1, vmax=1)
+    print(data.keys())
+    im = ax.imshow(data[max(store_data,2)], extent=[0, 1, 0, 1], origin="lower", vmin=-1, vmax=1)
 
     def update(frame):
         im.set_array(data[frame])
         return [im]
 
-    ani = FuncAnimation(fig, update, frames=range(0, Nt), blit=True)
-    ani.save(f"{filename}.mp4", writer="ffmpeg", fps=30)
+    ani = FuncAnimation(fig, update, frames=range(max(store_data,2), Nt, store_data), blit=True)
+    ani.save(f"{filename}.gif")
 
 if __name__ == "__main__":
     test_convergence_wave2d()
     test_convergence_wave2d_neumann()
     test_exact_wave2d()
+    
     create_movie(
-        Wave2D(),
-        N=100,
-        Nt=100,
+        Wave2D_Neumann(),
+        N=30,
+        Nt=60,
         cfl=1 / np.sqrt(2),
         mx=3,
         my=3,
-        filename="wave2d",
+        filename="mat_mek_mandatory1\\report\\neumannwave",
     )
     print("All tests passed!")
