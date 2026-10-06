@@ -357,11 +357,11 @@ if __name__ == "__main__":
     
     create_movie(
         Wave2D_Neumann(),
-        N=30,
+        N=25,
         Nt=60,
         cfl=1 / np.sqrt(2),
-        mx=3,
-        my=3,
+        mx=2,
+        my=2,
         filename="mat_mek_mandatory1\\report\\neumannwave",
     )
     print("All tests passed!")
