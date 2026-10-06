@@ -357,7 +357,7 @@ if __name__ == "__main__":
     
     create_movie(
         Wave2D_Neumann(),
-        N=25,
+        N=20,
         Nt=60,
         cfl=1 / np.sqrt(2),
         mx=2,
